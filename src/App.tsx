@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import socket from "./utils/socketConnection";
 import PerformanceWidget from "./components/performance-widget/PerformanceWidget";
 import { IPerformanceData } from "./types/objectTypes";
@@ -8,9 +9,7 @@ function App() {
 
   useEffect(() => {
     socket.on("machineMetrics", (data: IPerformanceData) => {
-      const machinesData = { ...machines };
-      (machinesData as any)[data.ip] = data;
-      setMachines(machinesData);
+      setMachines((prevState) => ({ ...prevState, [data.ip]: data }));
     });
 
     return () => {
