@@ -1,24 +1,34 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import socket from "./utils/socketConnection";
+import PerformanceWidget from "./components/performance-widget/PerformanceWidget";
+import { IPerformanceData } from "./types/objectTypes";
 
 function App() {
+  const [machines, setMachines] = useState({});
+
+  useEffect(() => {
+    socket.on("machineMetrics", (data: IPerformanceData) => {
+      const machinesData = { ...machines };
+      (machinesData as any)[data.ip] = data;
+      setMachines(machinesData);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  const widgets = (Object.values(machines) as IPerformanceData[]).map(
+    (data: IPerformanceData) => <PerformanceWidget data={data} key={data.ip} />
+  );
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="appContainer">
+      <h1>
+        Monitoring Tool - {widgets.length}{" "}
+        {widgets.length > 1 ? "machines" : "machine"}
+      </h1>
+      {widgets}
     </div>
   );
 }
